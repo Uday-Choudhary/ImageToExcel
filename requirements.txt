@@ -1,46 +1,64 @@
+# ── Core App ────────────────────────────────────────────────────────────────
 streamlit>=1.35.0
-annotated-types==0.7.0
-anyio==4.12.1
-certifi==2026.1.4
-distro==1.9.0
-easyocr==1.7.2
-et_xmlfile==2.0.0
-filelock==3.24.0
-fsspec==2026.2.0
 groq==1.0.0
-h11==0.16.0
-httpcore==1.0.9
-httpx==0.28.1
-idna==3.11
-ImageIO==2.37.2
-Jinja2==3.1.6
-lazy_loader==0.4
-MarkupSafe==3.0.3
-mpmath==1.3.0
-networkx==3.6.1
-ninja==1.13.0
-numpy>=1.26.0,<2.0.0
-opencv-python-headless>=4.8.0
-openpyxl==3.1.5
-packaging>=23.2,<26.0
-pandas>=2.1.4,<3.0.0
-pillow>=10.2.0,<12.0.0
-pyclipper==1.4.0
-pydantic==2.12.5
-pydantic_core==2.41.5
-python-bidi==0.6.7
-python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
-PyYAML==6.0.3
-scikit-image==0.26.0
-scipy==1.17.0
-setuptools==82.0.0
-shapely==2.1.2
-six==1.17.0
+openpyxl==3.1.5
+
+# ── Data ─────────────────────────────────────────────────────────────────────
+# pandas <3 is required by all streamlit versions
+pandas>=2.1.4,<3.0.0
+# numpy <2 is required by streamlit<=1.50, scipy, scikit-image, and cv2<4.9
+numpy>=1.26.0,<2.0.0
+
+# ── Vision / OCR ──────────────────────────────────────────────────────────────
+# opencv 4.8.x – 4.10.x use numpy 1.x; 4.13 requires numpy>=2
+opencv-python-headless>=4.8.0,<4.11.0
+easyocr==1.7.2
+pillow>=10.2.0,<12.0.0
+
+# ── HTTP / API ────────────────────────────────────────────────────────────────
+httpx==0.28.1
+httpcore==1.0.9
+h11==0.16.0
+anyio==4.12.1
 sniffio==1.3.1
-sympy==1.14.0
-tifffile==2026.1.28
+certifi==2026.1.4
+idna==3.11
+distro==1.9.0
+
+# ── ML / Torch (needed by easyocr) ────────────────────────────────────────────
 torch==2.10.0
 torchvision==0.25.0
+scipy==1.17.0
+scikit-image==0.26.0
+shapely==2.1.2
+
+# ── Pydantic / Groq deps ──────────────────────────────────────────────────────
+pydantic==2.12.5
+pydantic_core==2.41.5
+annotated-types==0.7.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+packaging>=23.2,<26.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+PyYAML==6.0.3
+fsspec==2026.2.0
+filelock==3.24.0
+networkx==3.6.1
+sympy==1.14.0
+mpmath==1.3.0
+six==1.17.0
+python-dateutil==2.9.0.post0
+
+# ── EasyOCR deps ──────────────────────────────────────────────────────────────
+ImageIO==2.37.2
+tifffile==2026.1.28
+lazy_loader==0.4
+pyclipper==1.4.0
+python-bidi==0.6.7
+ninja==1.13.0
+et_xmlfile==2.0.0
+setuptools==82.0.0
