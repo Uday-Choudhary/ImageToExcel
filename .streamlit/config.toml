@@ -1,0 +1,18 @@
+[theme]
+# Base light theme — ensures Streamlit renders proper colors before CSS injects
+base = "light"
+
+# App background (slate white)
+backgroundColor = "#f8fafc"
+
+# Sidebar and card background (pure white)
+secondaryBackgroundColor = "#ffffff"
+
+# Primary text color (slate 700) — NOT pure black
+textColor = "#334155"
+
+# Accent / primary interactive color (steel blue)
+primaryColor = "#2563eb"
+
+# Font
+font = "sans serif"

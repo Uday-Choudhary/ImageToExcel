@@ -28,107 +28,78 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS ─────────────────────────────────────────────────────────────────
+# ── Custom CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-    /* Global Streamlit Overrides */
-    :root {
-        --text-color: #334155;
-        --background-color: #f8fafc;
-        --secondary-background-color: #ffffff;
-        --primary-color: #2563eb;
-        --font: 'Inter', sans-serif;
-    }
-
-    /* Force font and text colors globally */
-    * {
+    /* Base font only — config.toml handles background + text colors */
+    html, body, [class*="css"], [class*="st-"] {
         font-family: 'Inter', sans-serif !important;
-        color: #334155;
     }
 
-    /* Target specific Streamlit containers that force black text */
-    .stMarkdown, .stText, p, span, div[data-testid="stMarkdownContainer"] {
-        color: #475569 !important;
-    }
-
-    /* Headings */
-    h1, h2, h3, h4, h5, h6, 
-    div[data-testid="stMarkdownContainer"] h1,
-    div[data-testid="stMarkdownContainer"] h2,
-    div[data-testid="stMarkdownContainer"] h3 {
+    /* Headings — firm dark slate for strong hierarchy */
+    h1, h2, h3, h4, h5, h6 {
         color: #0f172a !important;
         font-weight: 600 !important;
         letter-spacing: -0.015em;
     }
 
-    /* Hide default Streamlit top margin and footer */
+    /* Body text — muted slate instead of harsh #000 */
+    p, span, li,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] span,
+    div[data-testid="stMarkdownContainer"] li {
+        color: #475569 !important;
+    }
+
+    /* Caption / helper text */
+    small, .stCaption p, [data-testid="stCaptionContainer"] p {
+        color: #94a3b8 !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Layout polish */
     .block-container {
         padding-top: 2rem !important;
         padding-bottom: 2rem !important;
         max-width: 1200px !important;
     }
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
-    footer {display: none !important;}
+    header[data-testid="stHeader"] { display: none !important; }
+    footer { display: none !important; }
 
-    /* Main background */
-    .stApp {
-        background-color: #f8fafc;
-    }
-
-    /* Hero section */
+    /* === HERO === */
     .hero {
-        text-align: left;
         padding: 0 0 2rem;
         border-bottom: 1px solid #e2e8f0;
         margin-bottom: 2.5rem;
     }
-    .hero h1 {
-        font-size: 2.25rem !important;
-        margin-bottom: 0.5rem;
-    }
-    .hero p {
-        font-size: 1.05rem;
-        max-width: 700px;
-        line-height: 1.6;
-    }
+    .hero h1 { font-size: 2.25rem !important; color: #0f172a !important; margin-bottom: 0.4rem; }
+    .hero p  { font-size: 1.05rem; color: #64748b !important; line-height: 1.65; max-width: 680px; }
 
-    /* Sidebar styling */
+    /* === SIDEBAR === */
     [data-testid="stSidebar"] {
         background-color: #ffffff !important;
         border-right: 1px solid #e2e8f0 !important;
     }
-    [data-testid="stSidebarNav"] {
-        display: none !important;
-    }
-    /* Dim sidebar secondary text slightly more */
-    [data-testid="stSidebar"] p {
-        color: #64748b !important;
-        font-size: 0.9rem !important;
-    }
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 { color: #0f172a !important; }
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] li { color: #64748b !important; font-size: 0.9rem !important; }
 
-    /* Upload zone */
+    /* === FILE UPLOADER === */
     [data-testid="stFileUploader"] {
         background-color: #ffffff !important;
         border: 1px dashed #cbd5e1 !important;
         border-radius: 8px !important;
         padding: 2.5rem 1rem !important;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+        box-shadow: none !important;
+        transition: border-color 0.2s ease;
     }
-    [data-testid="stFileUploader"]:hover {
-        border-color: #3b82f6 !important;
-        background-color: #f8fafc !important;
-    }
-    /* Remove upload zone default instruction text color */
-    .st-emotion-cache-1gcek5f {
-        color: #64748b !important;
-    }
+    [data-testid="stFileUploader"]:hover { border-color: #3b82f6 !important; }
+    [data-testid="stFileUploader"] p { color: #94a3b8 !important; }
 
-    /* Base Buttons */
+    /* === BUTTONS (default) === */
     .stButton > button {
         background-color: #ffffff !important;
         color: #0f172a !important;
@@ -136,153 +107,88 @@ st.markdown("""
         border-radius: 6px !important;
         padding: 0.5rem 1rem !important;
         font-weight: 500 !important;
-        font-size: 0.95rem !important;
+        font-size: 0.925rem !important;
         transition: all 0.15s ease !important;
-        width: 100% !important;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    .stButton > button:hover {
-        border-color: #cbd5e1 !important;
-        background-color: #f8fafc !important;
-    }
-    .stButton > button:active {
-        background-color: #f1f5f9 !important;
-        transform: translateY(1px);
-    }
-    .stButton > button p {
-        color: inherit !important;
-    }
+    .stButton > button:hover { border-color: #94a3b8 !important; background-color: #f8fafc !important; }
+    .stButton > button:active { transform: translateY(1px); }
+    .stButton > button p { color: inherit !important; }
 
-    /* Primary Action Button (Extract) */
+    /* Primary button */
     .stButton > button[kind="primary"] {
         background-color: #2563eb !important;
         color: #ffffff !important;
-        border: 1px solid #2563eb !important;
-        box-shadow: 0 1px 3px 0 rgba(37, 99, 235, 0.3);
+        border-color: #2563eb !important;
+        box-shadow: 0 1px 3px rgba(37,99,235,0.35) !important;
     }
+    .stButton > button[kind="primary"] p { color: #ffffff !important; }
     .stButton > button[kind="primary"]:hover {
         background-color: #1d4ed8 !important;
         border-color: #1d4ed8 !important;
-        box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.4);
     }
 
     /* Download button */
     .stDownloadButton > button {
-        background-color: #ffffff !important;
+        background-color: #f8fafc !important;
         color: #0f172a !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 6px !important;
         font-weight: 500 !important;
-        width: 100% !important;
-        padding: 0.6rem 1rem !important;
-        font-size: 0.95rem !important;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        padding: 0.55rem 1rem !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    .stDownloadButton > button:hover {
-        background-color: #f8fafc !important;
-        border-color: #cbd5e1 !important;
-    }
+    .stDownloadButton > button p { color: #0f172a !important; }
+    .stDownloadButton > button:hover { border-color: #94a3b8 !important; }
 
-    /* Status boxes - softer colors */
-    .stSuccess, .stError, .stWarning, .stInfo { 
-        border-radius: 6px !important; 
-        border: 1px solid;
+    /* === STATUS ALERTS (target Streamlit emotion classes) === */
+    div[class*="stAlert"] {
+        border-radius: 6px !important;
+        border: 1px solid !important;
         padding: 0.75rem 1rem !important;
     }
-    .stSuccess { background-color: #f0fdf4 !important; border-color: #dcfce7 !important; }
-    .stSuccess * { color: #166534 !important; }
-    
-    .stError { background-color: #fef2f2 !important; border-color: #fee2e2 !important; }
-    .stError * { color: #991b1b !important; }
-    
-    .stWarning { background-color: #fffbeb !important; border-color: #fef3c7 !important; }
-    .stWarning * { color: #92400e !important; }
-    
-    .stInfo { background-color: #eff6ff !important; border-color: #dbeafe !important; }
-    .stInfo * { color: #1e40af !important; }
+    div[class*="stSuccess"] { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+    div[class*="stSuccess"] p { color: #14532d !important; }
 
-    /* Metric cards */
+    div[class*="stError"]   { background-color: #fef2f2 !important; border-color: #fecaca !important; }
+    div[class*="stError"] p { color: #7f1d1d !important; }
+
+    div[class*="stWarning"] { background-color: #fffbeb !important; border-color: #fde68a !important; }
+    div[class*="stWarning"] p { color: #78350f !important; }
+
+    div[class*="stInfo"]    { background-color: #eff6ff !important; border-color: #bfdbfe !important; }
+    div[class*="stInfo"] p  { color: #1e3a8a !important; }
+
+    /* === METRICS === */
     [data-testid="stMetric"] {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 1rem 1.25rem;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
     }
-    [data-testid="stMetricValue"] div { 
-        color: #0f172a !important; 
-        font-weight: 600 !important; 
-        font-size: 1.75rem !important;
+    [data-testid="stMetricValue"] > div {
+        color: #0f172a !important; font-weight: 700 !important; font-size: 1.75rem !important;
     }
-    [data-testid="stMetricLabel"] p { 
-        color: #64748b !important; 
-        font-size: 0.85rem !important;
-        font-weight: 500 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+    [data-testid="stMetricLabel"] > div {
+        color: #64748b !important; font-size: 0.8rem !important;
+        text-transform: uppercase; letter-spacing: 0.06em;
     }
 
-    /* Expander */
-    .streamlit-expanderHeader {
-        background-color: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 6px !important;
-        color: #334155 !important;
-        font-weight: 500;
-        padding: 0.75rem 1rem !important;
-    }
-    .streamlit-expanderHeader p { color: inherit !important; }
-    
-    /* Dataframes/Tables wrapper */
-    [data-testid="stDataFrame"] {
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
-    }
+    /* === EXPANDER === */
+    details > summary { padding: 0.75rem 1rem !important; }
+    details > summary p { color: #334155 !important; font-weight: 500 !important; }
 
-    /* Divider */
-    hr { 
-        border-color: #e2e8f0 !important; 
-        margin: 2.5rem 0 !important; 
-    }
+    /* === TABS === */
+    .stTabs [data-baseweb="tab-list"] { border-bottom: 1px solid #e2e8f0; gap: 2rem; }
+    .stTabs [data-baseweb="tab"] { color: #64748b !important; font-weight: 500; padding: 0.75rem 0; }
+    .stTabs [data-baseweb="tab"] p { color: inherit !important; }
+    .stTabs [aria-selected="true"] { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; background: transparent !important; }
 
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        border-bottom: 1px solid #e2e8f0;
-        gap: 2rem;
-        padding-bottom: 0px !important;
-    }
-    .stTabs [data-baseweb="tab"] { 
-        color: #64748b !important; 
-        font-weight: 500;
-        padding: 0.75rem 0;
-        border-bottom: 2px solid transparent;
-    }
-    .stTabs [aria-selected="true"] { 
-        color: #2563eb !important; 
-        border-bottom: 2px solid #2563eb !important; 
-        background-color: transparent !important;
-    }
-    
-    /* Empty State Box */
-    .empty-state {
-        text-align: left;
-        padding: 3rem 2rem;
-        color: #64748b;
-        background-color: #ffffff;
-        border: 1px dashed #cbd5e1;
-        border-radius: 8px;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.01);
-    }
-    .empty-state h3 {
-        color: #0f172a !important;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    .empty-state p {
-        margin: 0;
-        color: #64748b;
-    }
+    /* === DATAFRAME === */
+    [data-testid="stDataFrame"] { border: 1px solid #e2e8f0; border-radius: 6px; }
+
+    /* === DIVIDER === */
+    hr { border-color: #e2e8f0 !important; margin: 2.5rem 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
