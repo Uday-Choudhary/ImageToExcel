@@ -596,7 +596,7 @@ if uploaded_files:
     preview_cols = st.columns(min(len(uploaded_files), 4))
     for i, f in enumerate(uploaded_files):
         with preview_cols[i % 4]:
-            st.image(f, caption=f.name, use_container_width=True)
+            st.image(f, caption=f.name, width="stretch")
 
     st.markdown("---")
 
@@ -666,7 +666,7 @@ if uploaded_files:
                             st.markdown(f"**{desc}**")
                             rows = t.get("rows", [])
                             if rows:
-                                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                                st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
                             else:
                                 st.info("No rows found in this table.")
 
@@ -699,7 +699,7 @@ if uploaded_files:
                     data=excel_bytes,
                     file_name="Extracted_Data.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True,
+                    width="stretch",
                 )
 
         else:
