@@ -23,8 +23,7 @@ load_dotenv()
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ImageToExcel — AI Table Extractor",
-    page_icon="📊",
+    page_title="ImageToExcel — Table Extraction",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -32,116 +31,165 @@ st.set_page_config(
 # ── Custom CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    html, body, [class*="css"] { 
+        font-family: 'Inter', sans-serif;
+        color: #334155; 
+        background-color: #f8fafc;
+    }
 
-    /* Main gradient background */
+    /* Main background */
     .stApp {
-        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-        min-height: 100vh;
+        background-color: #f8fafc;
     }
 
     /* Hero section */
     .hero {
-        text-align: center;
-        padding: 2.5rem 1rem 1.5rem;
+        text-align: left;
+        padding: 1rem 0 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 2rem;
     }
     .hero h1 {
-        font-size: 3rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-size: 2.25rem;
+        font-weight: 600;
+        color: #0f172a;
         margin-bottom: 0.5rem;
     }
     .hero p {
-        color: #94a3b8;
-        font-size: 1.1rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    /* Glass cards */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 1.5rem;
-        backdrop-filter: blur(10px);
-        margin-bottom: 1.2rem;
+        color: #64748b;
+        font-size: 1rem;
+        max-width: 700px;
     }
 
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background: rgba(15, 12, 41, 0.85);
-        border-right: 1px solid rgba(255,255,255,0.08);
+        background-color: #ffffff;
+        border-right: 1px solid #e2e8f0;
     }
-    [data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+    [data-testid="stSidebar"] * { color: #334155 !important; }
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3 {
+        color: #0f172a !important;
+        font-weight: 600;
+    }
 
     /* Upload zone */
     [data-testid="stFileUploader"] {
-        background: rgba(167, 139, 250, 0.06) !important;
-        border: 2px dashed rgba(167, 139, 250, 0.4) !important;
-        border-radius: 12px !important;
-        padding: 1rem !important;
+        background-color: #ffffff !important;
+        border: 1px dashed #cbd5e1 !important;
+        border-radius: 8px !important;
+        padding: 2rem 1rem !important;
+        transition: border-color 0.2s ease;
     }
     [data-testid="stFileUploader"]:hover {
-        border-color: rgba(167, 139, 250, 0.8) !important;
+        border-color: #3b82f6 !important;
+        background-color: #f0f9ff !important;
     }
 
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(90deg, #7c3aed, #2563eb) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 0.6rem 2rem !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
         transition: all 0.2s ease !important;
         width: 100% !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     }
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(124,58,237,0.4) !important;
+        border-color: #cbd5e1 !important;
+        background-color: #f8fafc !important;
+    }
+    .stButton > button:active {
+        background-color: #f1f5f9 !important;
+    }
+
+    /* Primary Action Button (Extract) */
+    .stButton > button[kind="primary"] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #2563eb !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background-color: #1d4ed8 !important;
+        border-color: #1d4ed8 !important;
     }
 
     /* Download button */
     .stDownloadButton > button {
-        background: linear-gradient(90deg, #059669, #0891b2) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 10px !important;
-        font-weight: 600 !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
         width: 100% !important;
-        padding: 0.7rem 1.5rem !important;
-        font-size: 1rem !important;
+        padding: 0.6rem 1rem !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .stDownloadButton > button:hover {
+        background-color: #f8fafc !important;
+        border-color: #cbd5e1 !important;
     }
 
     /* Status boxes */
-    .stSuccess { border-radius: 10px !important; }
-    .stError   { border-radius: 10px !important; }
-    .stWarning { border-radius: 10px !important; }
-    .stInfo    { border-radius: 10px !important; }
+    .stSuccess, .stError, .stWarning, .stInfo { 
+        border-radius: 6px !important; 
+        border: 1px solid;
+    }
+    .stSuccess { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; color: #166534 !important; }
+    .stError   { background-color: #fef2f2 !important; border-color: #fecaca !important; color: #991b1b !important; }
+    .stWarning { background-color: #fffbeb !important; border-color: #fde68a !important; color: #92400e !important; }
+    .stInfo    { background-color: #eff6ff !important; border-color: #bfdbfe !important; color: #1e40af !important; }
 
     /* Metric cards */
-    [data-testid="stMetricValue"] { color: #a78bfa !important; font-weight: 700 !important; }
-    [data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+    [data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    [data-testid="stMetricValue"] { color: #0f172a !important; font-weight: 600 !important; font-size: 1.5rem !important;}
+    [data-testid="stMetricLabel"] { color: #64748b !important; font-size: 0.875rem !important;}
 
     /* Expander */
     .streamlit-expanderHeader {
-        background: rgba(255,255,255,0.04) !important;
-        border-radius: 8px !important;
-        color: #e2e8f0 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        color: #334155 !important;
+        font-weight: 500;
+    }
+    
+    /* Dataframes/Tables */
+    [data-testid="stDataFrame"] {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
     }
 
     /* Divider */
-    hr { border-color: rgba(255,255,255,0.08) !important; }
+    hr { border-color: #e2e8f0 !important; margin: 2rem 0 !important; }
 
     /* Tab styling */
-    .stTabs [data-baseweb="tab"] { color: #94a3b8 !important; }
-    .stTabs [aria-selected="true"] { color: #a78bfa !important; border-bottom-color: #a78bfa !important; }
+    .stTabs [data-baseweb="tab-list"] {
+        border-bottom: 1px solid #e2e8f0;
+        gap: 1.5rem;
+    }
+    .stTabs [data-baseweb="tab"] { 
+        color: #64748b !important; 
+        font-weight: 500;
+        padding: 0.5rem 0;
+    }
+    .stTabs [aria-selected="true"] { 
+        color: #2563eb !important; 
+        border-bottom: 2px solid #2563eb !important; 
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -346,12 +394,12 @@ def build_excel(results: list[dict]) -> bytes:
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("## ⚙️ Settings")
+    st.markdown("## Configuration")
     st.markdown("---")
 
-    # API Key input (for users who want to paste it directly)
+    # API Key input
     api_key_input = st.text_input(
-        "🔑 Groq API Key",
+        "Groq API Key",
         type="password",
         placeholder="gsk_...",
         help="Required if not set in Streamlit secrets or .env file.",
@@ -360,32 +408,32 @@ with st.sidebar:
         os.environ["GROQ_API_KEY"] = api_key_input
 
     st.markdown("---")
-    st.markdown("### 📋 How It Works")
+    st.markdown("### Instructions")
     steps = [
-        "1️⃣ Upload one or more images",
-        "2️⃣ Click **Extract & Generate Excel**",
-        "3️⃣ Preview the extracted data",
-        "4️⃣ Download your `.xlsx` file",
+        "1. Upload image files",
+        "2. Click Extract Data",
+        "3. Review results",
+        "4. Download Excel export",
     ]
     for s in steps:
         st.markdown(s)
 
     st.markdown("---")
-    st.markdown("### 🧠 Model")
+    st.markdown("### Model Engine")
     st.markdown("`meta-llama/llama-4-maverick-17b-128e-instruct`")
     st.markdown("Powered by **[Groq](https://groq.com)** inference.")
 
     st.markdown("---")
-    st.markdown("### 📁 Supported Formats")
-    st.markdown("`.jpg` · `.jpeg` · `.png`")
+    st.markdown("### Supported Formats")
+    st.markdown("· JPG · JPEG · PNG")
 
 
 # ── Hero ───────────────────────────────────────────────────────────────────────
 
 st.markdown("""
 <div class="hero">
-    <h1>📊 ImageToExcel</h1>
-    <p>Upload images of invoices, tables, or receipts and instantly get a clean, structured Excel file powered by AI vision.</p>
+    <h1>ImageToExcel</h1>
+    <p>Upload images of invoices, tables, or receipts to automatically extract structured data and generate clean Excel files.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -396,26 +444,26 @@ st.markdown("---")
 col_upload, col_info = st.columns([2, 1], gap="large")
 
 with col_upload:
-    st.markdown("### 📤 Upload Images")
+    st.markdown("### Upload Documents")
     uploaded_files = st.file_uploader(
-        "Drop your images here",
+        "Drag and drop files here",
         type=["jpg", "jpeg", "png"],
         accept_multiple_files=True,
         label_visibility="collapsed",
     )
 
 with col_info:
-    st.markdown("### 📈 Quick Stats")
+    st.markdown("### Overview")
     m1, m2 = st.columns(2)
-    m1.metric("Images Uploaded", len(uploaded_files) if uploaded_files else 0)
-    m2.metric("Ready to Extract", "✅" if uploaded_files else "—")
+    m1.metric("Files Uploaded", len(uploaded_files) if uploaded_files else 0)
+    m2.metric("Status", "Ready" if uploaded_files else "Waiting")
 
 st.markdown("---")
 
 # ── Image Preview ──────────────────────────────────────────────────────────────
 
 if uploaded_files:
-    st.markdown("### 🖼️ Preview")
+    st.markdown("### File Preview")
     preview_cols = st.columns(min(len(uploaded_files), 4))
     for i, f in enumerate(uploaded_files):
         with preview_cols[i % 4]:
@@ -426,22 +474,22 @@ if uploaded_files:
     # ── Extract Button ─────────────────────────────────────────────────────────
     col_btn, _ = st.columns([1, 2])
     with col_btn:
-        run = st.button("🚀 Extract & Generate Excel", use_container_width=True)
+        run = st.button("Extract Data", type="primary", use_container_width=True)
 
     if run:
         results = []
         all_raw = {}
 
         # Progress
-        progress_bar = st.progress(0, text="Starting extraction...")
+        progress_bar = st.progress(0, text="Initializing extraction sequence...")
         status_area = st.empty()
 
         for idx, uploaded_file in enumerate(uploaded_files):
             pct = int((idx / len(uploaded_files)) * 100)
-            progress_bar.progress(pct, text=f"Processing **{uploaded_file.name}** ({idx+1}/{len(uploaded_files)})...")
+            progress_bar.progress(pct, text=f"Processing {uploaded_file.name} ({idx+1}/{len(uploaded_files)})")
 
             with status_area.container():
-                with st.spinner(f"🔍 Analysing `{uploaded_file.name}` with Llama Vision..."):
+                with st.spinner(f"Analyzing {uploaded_file.name}..."):
                     image_bytes = uploaded_file.read()
                     t0 = time.time()
                     data = extract_data_from_image(image_bytes, uploaded_file.name)
@@ -451,15 +499,15 @@ if uploaded_files:
                 sheet_name = uploaded_file.name.rsplit(".", 1)[0][:31]
                 results.append((sheet_name, data))
                 all_raw[uploaded_file.name] = data
-                status_area.success(f"✅ `{uploaded_file.name}` extracted in {elapsed:.1f}s")
+                status_area.success(f"{uploaded_file.name} processed successfully in {elapsed:.1f}s")
             else:
-                status_area.error(f"❌ Failed to extract `{uploaded_file.name}`")
+                status_area.error(f"Failed to process {uploaded_file.name}")
 
-        progress_bar.progress(100, text="Done!")
+        progress_bar.progress(100, text="Extraction complete")
 
         if results:
             st.markdown("---")
-            st.markdown("### 📊 Extracted Data Preview")
+            st.markdown("### Extracted Data")
 
             tabs = st.tabs([name for name, _ in results])
             for tab, (sheet_name, data) in zip(tabs, results):
@@ -472,17 +520,17 @@ if uploaded_files:
                     c1, c2 = st.columns(2)
                     with c1:
                         if doc_sum:
-                            st.markdown("**📄 Document Summary**")
+                            st.markdown("**Document Summary**")
                             st.json(doc_sum)
                     with c2:
                         if entities:
-                            st.markdown("**🏷️ Entities**")
+                            st.markdown("**Entities**")
                             st.json(entities)
 
                     if tables:
                         for t_idx, t in enumerate(tables):
                             desc = t.get("table_description", f"Table {t_idx+1}")
-                            st.markdown(f"**🗂️ {desc}**")
+                            st.markdown(f"**{desc}**")
                             rows = t.get("rows", [])
                             if rows:
                                 st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
@@ -493,28 +541,28 @@ if uploaded_files:
                             if val:
                                 check = val.get("math_check", "")
                                 notes = val.get("notes", "")
-                                badge = "✅" if "pass" in check.lower() else "⚠️"
-                                st.caption(f"{badge} Math check: **{check}** — {notes}")
+                                badge = "Passed" if "pass" in check.lower() else "Failed"
+                                st.caption(f"Validation: {badge} — {notes}")
                     else:
-                        st.warning("No tables were detected in this image.")
+                        st.warning("No tabular data detected in this document.")
 
                     # Raw JSON expander
-                    with st.expander("🔍 View Raw JSON"):
+                    with st.expander("View Source JSON"):
                         st.json(data)
 
             # ── Excel Download ─────────────────────────────────────────────────
             st.markdown("---")
-            st.markdown("### ⬇️ Download Excel")
+            st.markdown("### Export")
 
-            with st.spinner("Building Excel file..."):
+            with st.spinner("Generating Excel workbook..."):
                 excel_bytes = build_excel(results)
 
-            st.success(f"🎉 Excel file ready with **{len(results)}** sheet(s)!")
+            st.success(f"Workbook generated successfully ({len(results)} sheets)")
 
             dl_col, _ = st.columns([1, 2])
             with dl_col:
                 st.download_button(
-                    label="📥 Download Extracted_Data.xlsx",
+                    label="Download Excel File",
                     data=excel_bytes,
                     file_name="Extracted_Data.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -522,23 +570,22 @@ if uploaded_files:
                 )
 
         else:
-            st.error("No data could be extracted from any of the uploaded images. Please check your API key and try again.")
+            st.error("Data extraction failed for all uploaded files. Verify your API key configuration and try again.")
 
 else:
     # Empty state
     st.markdown("""
-    <div style="text-align:center; padding: 3rem; color: #64748b;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">📂</div>
-        <h3 style="color: #94a3b8;">Upload images to get started</h3>
-        <p>Supported formats: JPG, JPEG, PNG</p>
+    <div style="text-align:left; padding: 4rem 2rem; color: #64748b; background-color: #ffffff; border: 1px dashed #cbd5e1; border-radius: 8px;">
+        <h3 style="color: #334155; font-weight: 500; margin-bottom: 0.5rem;">No documents selected</h3>
+        <p style="margin: 0;">Please upload your target documents using the file selector above or drag and drop them into the upload zone.</p>
     </div>
     """, unsafe_allow_html=True)
 
 # ── Footer ─────────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown(
-    "<p style='text-align:center; color:#475569; font-size:0.85rem;'>"
-    "ImageToExcel · Powered by Llama Vision on Groq · Built with Streamlit"
+    "<p style='text-align:left; color:#94a3b8; font-size:0.875rem;'>"
+    "ImageToExcel · Engine: Groq Llama Vision · Interface: Streamlit"
     "</p>",
     unsafe_allow_html=True,
 )
