@@ -20,8 +20,6 @@ from openpyxl.styles import Font, Alignment, PatternFill
 from dotenv import load_dotenv
 from groq import Groq
 
-# EasyOCR imports (loaded lazily so app starts fast)
-import importlib
 
 # ── Load .env (works locally; on Streamlit Cloud use st.secrets) ──────────────
 load_dotenv()
@@ -301,106 +299,6 @@ def extract_data_from_image(image_bytes: bytes, filename: str) -> dict | None:
 
 
 
-# ── OCR Extraction (EasyOCR + Spatial) ───────────────────────────────────────
-
-import json as _json
-import re as _re
-from collections import defaultdict
-
-_ocr_reader = None  # lazy-loaded singleton
-
-def _get_ocr_reader():
-    """Lazy-load EasyOCR to avoid startup delay."""
-    global _ocr_reader
-    if _ocr_reader is None:
-        import easyocr
-        _ocr_reader = easyocr.Reader(["en"], gpu=False, verbose=False)
-    return _ocr_reader
-
-
-def extract_data_from_image_ocr(image_bytes: bytes, filename: str) -> dict | None:
-    """
-    Run EasyOCR + SpatialTableExtractor inline (no file I/O to disk).
-    Returns a dict in the same 'vision-like' schema so build_excel() works
-    for both methods.
-    """
-    try:
-        from spatial_table_extractor import SpatialTableExtractor
-    except ImportError:
-        st.error("SpatialTableExtractor not found. Ensure spatial_table_extractor.py is in the project root.")
-        return None
-
-    reader = _get_ocr_reader()
-    extractor = SpatialTableExtractor()
-
-    # EasyOCR accepts bytes directly
-    import numpy as _np
-    from PIL import Image as _PILImage
-    import io as _io
-    pil_img = _PILImage.open(_io.BytesIO(image_bytes)).convert("RGB")
-    img_np = _np.array(pil_img)
-
-    raw_results = reader.readtext(img_np, detail=1, paragraph=False,
-                                  min_size=10, text_threshold=0.6,
-                                  low_text=0.3, width_ths=0.7, mag_ratio=1.5)
-
-    # Convert to EasyOCR JSON format expected by SpatialTableExtractor
-    formatted = [{"bbox": r[0], "text": r[1], "confidence": float(r[2])} for r in raw_results]
-
-    # Write to temp file so SpatialTableExtractor can load it
-    with tempfile.NamedTemporaryFile(mode="w", suffix="_easyocr.json", delete=False) as tf:
-        import json as _json
-        _json.dump(formatted, tf, default=lambda o: o.tolist() if hasattr(o, "tolist") else float(o))
-        tmp_path = tf.name
-
-    result = extractor.extract_full_data(tmp_path)
-
-    try:
-        import os as _os
-        _os.unlink(tmp_path)
-    except Exception:
-        pass
-
-    if not result:
-        return None
-
-    # Convert SpatialTableExtractor output → vision-like schema
-    table_data = result.get("table", {})
-    headers = table_data.get("headers", [])
-    rows_raw = table_data.get("rows", [])
-
-    # Build rows as list of dicts (keyed by header)
-    rows_dicts = []
-    for row in rows_raw:
-        if headers and len(row) == len(headers):
-            rows_dicts.append(dict(zip(headers, row)))
-        else:
-            rows_dicts.append({f"Col {i+1}": v for i, v in enumerate(row)})
-
-    metadata = result.get("metadata", {})
-    header_split = result.get("header_split", {})
-    footer = result.get("footer_info", [])
-
-    entities = {**metadata}
-    for line in (header_split.get("left", []) + header_split.get("right", [])):
-        if ":" in line:
-            k, _, v = line.partition(":")
-            entities[k.strip()] = v.strip()
-
-    footer_rows = [{f"Label": r[0], "Value": r[1]} if len(r) == 2 else {"Text": r[0] if r else ""} for r in footer]
-
-    tables = [{"table_description": f"Table from {filename}", "headers": headers, "rows": rows_dicts,
-               "validation": {"math_check": "n/a", "notes": "Extracted via EasyOCR"}}]
-    if footer_rows:
-        tables.append({"table_description": "Footer / Totals", "headers": list(footer_rows[0].keys()), "rows": footer_rows,
-                        "validation": {"math_check": "n/a", "notes": ""}})
-
-    return {
-        "document_summary": {"style": "auto-detected", "domain": "auto-detected",
-                             "source": "EasyOCR + SpatialTableExtractor"},
-        "entities": entities,
-        "tables": tables,
-    }
 
 # ── Excel Generation ──────────────────────────────────────────────────────────
 
@@ -503,43 +401,19 @@ with st.sidebar:
     st.markdown("## Configuration")
     st.markdown("---")
 
-    # Extraction method selector
-    st.markdown("### Extraction Method")
-    extraction_method = st.radio(
-        "Choose extraction engine",
-        options=["Groq Vision (Llama)", "EasyOCR (Local)"],
-        index=0,
-        label_visibility="collapsed",
-        help=(
-            "**Groq Vision** — Sends images to Llama Vision via Groq API. "
-            "Fast, accurate, requires an API key.\n\n"
-            "**EasyOCR** — Runs locally, no API key needed. "
-            "Downloads models on first run (~250 MB). Best for printed tables."
-        ),
+    # API Key input
+    st.markdown("### API Configuration")
+    api_key_input = st.text_input(
+        "Groq API Key",
+        type="password",
+        placeholder="gsk_...",
+        help="Required if not set in Streamlit secrets or .env file.",
     )
+    if api_key_input:
+        os.environ["GROQ_API_KEY"] = api_key_input
 
-    st.markdown("---")
-
-    if extraction_method == "Groq Vision (Llama)":
-        # API Key input
-        api_key_input = st.text_input(
-            "Groq API Key",
-            type="password",
-            placeholder="gsk_...",
-            help="Required if not set in Streamlit secrets or .env file.",
-        )
-        if api_key_input:
-            os.environ["GROQ_API_KEY"] = api_key_input
-
-        st.markdown("**Engine:** `meta-llama/llama-4-maverick-17b-128e-instruct`")
-        st.markdown("Powered by **[Groq](https://groq.com)** inference.")
-    else:
-        st.info(
-            "EasyOCR runs entirely on-device. "
-            "No API key required. On first use, EasyOCR downloads language models (~250 MB).",
-            icon=None,
-        )
-        st.markdown("**Engine:** EasyOCR + SpatialTableExtractor")
+    st.markdown("**Engine:** `meta-llama/llama-4-maverick-17b-128e-instruct`")
+    st.markdown("Powered by **[Groq](https://groq.com)** inference.")
 
     st.markdown("---")
     st.markdown("### Instructions")
@@ -618,14 +492,10 @@ if uploaded_files:
             progress_bar.progress(pct, text=f"Processing {uploaded_file.name} ({idx+1}/{len(uploaded_files)})")
 
             with status_area.container():
-                engine_label = "Groq Vision" if extraction_method == "Groq Vision (Llama)" else "EasyOCR"
-                with st.spinner(f"Analyzing {uploaded_file.name} using {engine_label}..."):
+                with st.spinner(f"Analyzing {uploaded_file.name} using Groq Vision..."):
                     image_bytes = uploaded_file.read()
                     t0 = time.time()
-                    if extraction_method == "Groq Vision (Llama)":
-                        data = extract_data_from_image(image_bytes, uploaded_file.name)
-                    else:
-                        data = extract_data_from_image_ocr(image_bytes, uploaded_file.name)
+                    data = extract_data_from_image(image_bytes, uploaded_file.name)
                     elapsed = time.time() - t0
 
             if data:
@@ -718,7 +588,7 @@ else:
 st.markdown("---")
 st.markdown(
     "<p style='text-align:left; color:#94a3b8; font-size:0.875rem;'>"
-    "ImageToExcel · Engine: Groq Llama Vision · Interface: Streamlit"
+    "ImageToExcel · Powered by Groq Llama Vision · Interface: Streamlit"
     "</p>",
     unsafe_allow_html=True,
 )
