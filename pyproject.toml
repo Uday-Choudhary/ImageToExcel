@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ImageToExcel"
+version = "1.0.0"
+description = "A powerful Python pipeline that converts images (invoices, bills, tables) into structured Excel files."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Uday Kumar Choudhary" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "streamlit>=1.35.0",
+    "groq==1.0.0",
+    "python-dotenv==1.2.1",
+    "openpyxl==3.1.5",
+    "pandas>=2.1.4,<3.0.0",
+    "numpy>=1.26.0,<2.0.0",
+    "opencv-python-headless>=4.8.0,<4.11.0",
+    "easyocr==1.7.2",
+    "pillow>=10.2.0,<12.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.setuptools]
+packages = ["core", "extractors"]

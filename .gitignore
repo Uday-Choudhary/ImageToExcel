@@ -20,6 +20,9 @@ ocr_data/
 vision_data/
 output/
 
+# Local working directories
+PixelToSheetUI-Output/
+
 # IDE
 .idea/
 .vscode/

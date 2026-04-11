@@ -1,17 +1,30 @@
 """
 Spatial Table Extractor
-Analyzes OCR data to reconstruct tables based on spatial alignment.
+
+Analyzes EasyOCR output to reconstruct document tables using spatial
+alignment heuristics — row clustering, column boundary detection,
+header identification, and continuation-row merging.
 """
 
+from __future__ import annotations
+
 import json
+import logging
 import re
+from typing import Any, Optional
+
 import numpy as np
-from collections import defaultdict
+
+from core.constants import MIN_OCR_CONFIDENCE, VERTICAL_OVERLAP_THRESHOLD
+
+logger = logging.getLogger(__name__)
 
 
 class SpatialTableExtractor:
-    def __init__(self):
-        self.min_confidence = 0.3  # Filter low-confidence noise
+    """Reconstructs structured tables from raw OCR bounding-box data."""
+
+    def __init__(self, min_confidence: float = MIN_OCR_CONFIDENCE) -> None:
+        self.min_confidence = min_confidence
 
     # ─── Text Cleaning ───────────────────────────────────────────────
 
@@ -71,7 +84,7 @@ class SpatialTableExtractor:
         for word in words[1:]:
             in_row = any(
                 self._vertical_overlap(m['y_min'], m['y_max'],
-                                       word['y_min'], word['y_max']) >= 0.35
+                                       word['y_min'], word['y_max']) >= VERTICAL_OVERLAP_THRESHOLD
                 for m in current
             )
             if not in_row:
@@ -472,7 +485,7 @@ class SpatialTableExtractor:
             with open(json_path, 'r') as f:
                 data = json.load(f)
         except Exception as e:
-            print(f"    Error loading JSON: {e}")
+            logger.error("Error loading JSON %s: %s", json_path, e)
             return None
 
         if not data:
@@ -565,14 +578,14 @@ class SpatialTableExtractor:
             table_rows_raw = rows[h_idx + 1 : split_idx]
             footer_rows_raw = rows[split_idx:]
 
-            print(f"    Layout: header-based (row {h_idx})")
+            logger.info("Layout: header-based (row %d)", h_idx)
             h_sorted = sorted(h_words, key=lambda w: w['x_min'])
             headers = [self.clean_text(w['text']) for w in h_sorted]
             # Use table words + header words for column boundaries
             table_words_flat = [w for r in table_rows_raw for w in r] + h_sorted
             bounds = self._boundaries_from_headers(h_sorted, table_words_flat if table_words_flat else h_sorted)
         else:
-            print("    Layout: gutter-based")
+            logger.info("Layout: gutter-based")
             headers = []
             bounds = []
             header_rows_raw = []
