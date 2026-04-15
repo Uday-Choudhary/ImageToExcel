@@ -683,8 +683,17 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown("### API Configuration")
+    default_key = ""
+    try:
+        tmp_key = st.secrets.get("GROQ_API_KEY", "")
+        if "your_key" not in tmp_key.lower():
+            default_key = tmp_key
+    except Exception:
+        pass
+
     api_key_input = st.text_input(
         "Groq API Key",
+        value=default_key,
         type="password",
         placeholder="gsk_...",
         help="Required if not set in Streamlit secrets or .env file.",
