@@ -824,7 +824,14 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
     if run:
-        extractor = VisionExtractor(api_key=api_key_input if api_key_input else None)
+        resolved_api_key = api_key_input
+        if not resolved_api_key:
+            try:
+                resolved_api_key = st.secrets.get("GROQ_API_KEY")
+            except Exception:
+                pass
+                
+        extractor = VisionExtractor(api_key=resolved_api_key if resolved_api_key else None)
 
         results: list[tuple[str, dict]] = []
         all_raw: dict[str, dict] = {}
